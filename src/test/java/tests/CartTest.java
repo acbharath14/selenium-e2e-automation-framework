@@ -27,7 +27,8 @@ class CartTest extends BaseTest {
     @BeforeEach
     void signIn() {
         String[] creds = TestData.user("standard");
-        inventory = new LoginPage(driver).loginAs(creds[0], creds[1]);
+        new LoginPage(driver).loginAs(creds[0], creds[1]);
+        inventory = new InventoryPage(driver);
     }
 
     @Test

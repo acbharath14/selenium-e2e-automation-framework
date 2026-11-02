@@ -28,7 +28,8 @@ class CheckoutTest extends BaseTest {
     @BeforeEach
     void signInAndAddItems() {
         String[] creds = TestData.user("standard");
-        InventoryPage inventory = new LoginPage(driver).loginAs(creds[0], creds[1]);
+        new LoginPage(driver).loginAs(creds[0], creds[1]);
+        InventoryPage inventory = new InventoryPage(driver);
         JsonNode data = TestData.checkout();
         for (JsonNode item : data.get("items")) {
             inventory.addToCart(item.asText());
