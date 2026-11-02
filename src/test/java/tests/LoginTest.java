@@ -9,7 +9,6 @@ import pages.LoginPage;
 import util.TestData;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -24,7 +23,8 @@ class LoginTest extends BaseTest {
     @DisplayName("Standard user signs in successfully and sees the products page")
     void standardUserSignsInSuccessfully() {
         String[] creds = TestData.user("standard");
-        InventoryPage inventory = new LoginPage(driver).loginAs(creds[0], creds[1]);
+        new LoginPage(driver).loginAs(creds[0], creds[1]);
+        InventoryPage inventory = new InventoryPage(driver);
         assertEquals("Products", inventory.pageTitle(),
                 "Standard user should land on the products page after login");
     }
@@ -43,17 +43,19 @@ class LoginTest extends BaseTest {
     @DisplayName("Problem user signs in and sees the products page with broken product images")
     void problemUserSeesBrokenImages() {
         String[] creds = TestData.user("problem");
-        InventoryPage inventory = new LoginPage(driver).loginAs(creds[0], creds[1]);
+        new LoginPage(driver).loginAs(creds[0], creds[1]);
+        InventoryPage inventory = new InventoryPage(driver);
         assertEquals("Products", inventory.pageTitle());
-        assertFalse(inventory.allImagesLoaded(),
-                "Problem user is known to see broken product images");
+        assertTrue(inventory.allImagesIdentical(),
+                "Problem user is known to see the same wrong image for all products");
     }
 
     @Test
     @DisplayName("Slow user signs in successfully and sees the products page")
     void slowUserSignsInSuccessfully() {
         String[] creds = TestData.user("performanceGlitch");
-        InventoryPage inventory = new LoginPage(driver).loginAs(creds[0], creds[1]);
+        new LoginPage(driver).loginAs(creds[0], creds[1]);
+        InventoryPage inventory = new InventoryPage(driver);
         assertEquals("Products", inventory.pageTitle(),
                 "Slow user should eventually land on the products page");
     }

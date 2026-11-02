@@ -25,12 +25,12 @@ public class LoginPage {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
-    /** Types credentials and submits. Returns the inventory page on success. */
-    public InventoryPage loginAs(String username, String password) {
+    /** Types credentials and submits. Does NOT navigate — the caller decides
+     * what page to expect next (success → InventoryPage, failure → stays here). */
+    public void loginAs(String username, String password) {
         wait.until(ExpectedConditions.visibilityOfElementLocated(USERNAME)).sendKeys(username);
         driver.findElement(PASSWORD).sendKeys(password);
         driver.findElement(LOGIN_BUTTON).click();
-        return new InventoryPage(driver);
     }
 
     /** The red error banner text after a failed login; empty string if none is shown. */

@@ -22,7 +22,7 @@ public class InventoryPage {
     private static final By PRODUCT_NAMES = By.cssSelector(".inventory_item_name");
     private static final By PRODUCT_PRICES = By.cssSelector(".inventory_item_price");
     private static final By PRODUCT_IMAGES = By.cssSelector(".inventory_item_img img");
-    private static final By SORT_DROPDOWN = By.cssSelector("[data-test='product_sort_container']");
+    private static final By SORT_DROPDOWN = By.cssSelector("[data-test='product-sort-container']");
     private static final By CART_BADGE = By.cssSelector(".shopping_cart_badge");
     private static final By CART_LINK = By.cssSelector(".shopping_cart_link");
 
@@ -46,11 +46,14 @@ public class InventoryPage {
                 .map(WebElement::getText).toList();
     }
 
-    /** True when every product image loaded (naturalWidth > 0 via JS). */
-    public boolean allImagesLoaded() {
+    /** True when all product images share the same src — the problem_user symptom
+     * (every product shows the same wrong image, though each technically loads). */
+    public boolean allImagesIdentical() {
         List<WebElement> images = driver.findElements(PRODUCT_IMAGES);
-        return images.stream().allMatch(img -> (Boolean) ((org.openqa.selenium.JavascriptExecutor) driver)
-                .executeScript("return arguments[0].complete && arguments[0].naturalWidth > 0;", img));
+        return !images.isEmpty() && images.stream()
+                .map(img -> img.getAttribute("src"))
+                .distinct()
+                .count() == 1;
     }
 
     public void sortBy(String visibleText) {
