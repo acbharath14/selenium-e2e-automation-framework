@@ -128,10 +128,12 @@ CI runs on Jenkins via the `Jenkinsfile` at the repo root (declarative pipeline)
 
 **Jenkins prerequisites:**
 1. A Jenkins agent with **JDK 17**, **Maven 3**, and **Chrome** installed.
+   - Note: the Jenkins **controller** itself needs **Java 21+** to run (Jenkins 2.580+ refuses to start on Java 17). The builds still use JDK 17 — controller Java and build JDK are separate settings.
 2. In Jenkins → Manage Jenkins → Tools, define:
    - JDK installation named `jdk-17`
    - Maven installation named `maven-3`
 3. Install the **Allure** and **JaCoCo** plugins for report publishing.
+   - The Allure plugin auto-installs Allure **3.x** (redesigned UI). If you prefer the classic Suites / Categories / Timeline tabs, set the Allure Commandline tool version to **2.34.1** under Manage Jenkins → Tools.
 
 **Pipeline stages:** Checkout → Preflight (`scripts/preflight.sh`) → Test (`mvn clean test`).
 
@@ -158,3 +160,4 @@ It runs the suite headless on Ubuntu, then uploads three artifacts: the Allure r
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
