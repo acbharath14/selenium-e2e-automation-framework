@@ -66,7 +66,8 @@ The first run downloads dependencies and the Chrome driver via Selenium Manager.
 ```
 ├── pom.xml                        # Dependencies: Selenium 4, JUnit 5, Allure, JaCoCo, REST Assured
 ├── scripts/preflight.sh           # Setup checker — runs automatically before tests
-├── Jenkinsfile                    # Jenkins declarative pipeline (CI)
+├── Jenkinsfile                    # Jenkins declarative pipeline (CI option 1)
+├── ci/github-actions.yml          # GitHub Actions workflow TEMPLATE (CI option 2)
 └── src/test/
     ├── java/
     │   ├── factory/
@@ -117,7 +118,11 @@ mvn test                       # report lands in target/site/jacoco/
 open target/site/jacoco/index.html
 ```
 
-## CI setup (Jenkins)
+## CI setup
+
+Two CI options are supported — pick the one that fits your environment.
+
+### Option 1: Jenkins
 
 CI runs on Jenkins via the `Jenkinsfile` at the repo root (declarative pipeline).
 
@@ -131,6 +136,17 @@ CI runs on Jenkins via the `Jenkinsfile` at the repo root (declarative pipeline)
 **Pipeline stages:** Checkout → Preflight (`scripts/preflight.sh`) → Test (`mvn clean test`).
 
 The `HEADLESS` build parameter (default `true`) controls Chrome headless mode. Post-build publishes JUnit trends, the Allure report, JaCoCo coverage, and archives failure screenshots.
+
+### Option 2: GitHub Actions
+
+The GitHub Actions workflow lives at `ci/github-actions.yml` as a **template** — it is not wired up automatically. To enable CI:
+
+1. On GitHub, go to **Add file → Create new file**.
+2. Name it `.github/workflows/selenium.yml`.
+3. Paste the contents of `ci/github-actions.yml` (keep the quotes around `"on"` — YAML treats a bare `on` as `true`).
+4. Commit. The workflow runs on every push/PR to `main`, plus manually.
+
+It runs the suite headless on Ubuntu, then uploads three artifacts: the Allure report, the JaCoCo report, and failure screenshots.
 
 ## Extending the framework
 
