@@ -1,5 +1,7 @@
 package factory;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -27,6 +29,11 @@ public final class WebDriverFactory {
         }
         // CI-friendly flags: no sandbox issues in containers, stable window size.
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage", "--window-size=1440,900");
+        // Suppress Chrome's "password was leaked in a data breach" warning, which
+        // blocks interaction with saucedemo.com's login page until dismissed.
+        Map<String, Object> prefs = new HashMap<>();
+        prefs.put("profile.password_manager_leak_detection", false);
+        options.setExperimentalOption("prefs", prefs);
         return new ChromeDriver(options);
     }
 }
