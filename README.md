@@ -1,6 +1,17 @@
 # Selenium E2E Automation Framework
 
+![20 tests passing](https://img.shields.io/badge/tests-20%20passing-brightgreen)
+![Java 17](https://img.shields.io/badge/Java-17-blue)
+![Selenium 4.25](https://img.shields.io/badge/Selenium-4.25-orange)
+![JUnit 5](https://img.shields.io/badge/JUnit-5-red)
+![Allure](https://img.shields.io/badge/Allure-report-yellow)
+![Jenkins](https://img.shields.io/badge/CI-Jenkins-lightgrey)
+
 A complete end-to-end test automation framework built with **Selenium WebDriver 4**, **Java 17**, **JUnit 5**, and **Allure** reporting. It tests the [Swag Labs](https://www.saucedemo.com) demo store (15 UI journeys) and the [ReqRes](https://reqres.in) practice API (5 REST Assured tests).
+
+**Watch it run** — the Jenkins pipeline: Build Now → stages go green → Allure report, 20/20:
+
+![Jenkins pipeline demo: Build Now, tests run, Allure report shows 20/20 green](docs/selenium-jenkins-demo.gif)
 
 If you are new to test automation, this repo is written for you: every class has comments explaining what it does and why, test names say what they check in plain words, and the setup below assumes you are starting from scratch.
 
