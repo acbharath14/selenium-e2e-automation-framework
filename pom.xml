@@ -25,6 +25,7 @@
     <maven.compiler.target>17</maven.compiler.target>
     <selenium.version>4.25.0</selenium.version>
     <junit.version>5.12.2</junit.version>
+    <cucumber.version>7.22.1</cucumber.version>
     <allure.version>2.29.1</allure.version>
     <jacoco.version>0.8.12</jacoco.version>
     <surefire.version>3.2.5</surefire.version>
@@ -57,11 +58,43 @@
       <version>1.12.2</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-suite</artifactId>
+      <version>1.12.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Cucumber BDD (runs the .feature files through the JUnit Platform) -->
+    <dependency>
+      <groupId>io.cucumber</groupId>
+      <artifactId>cucumber-java</artifactId>
+      <version>${cucumber.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.cucumber</groupId>
+      <artifactId>cucumber-junit-platform-engine</artifactId>
+      <version>${cucumber.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.cucumber</groupId>
+      <artifactId>cucumber-picocontainer</artifactId>
+      <version>${cucumber.version}</version>
+      <scope>test</scope>
+    </dependency>
 
     <!-- Allure reporting -->
     <dependency>
       <groupId>io.qameta.allure</groupId>
       <artifactId>allure-junit5</artifactId>
+      <version>${allure.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.qameta.allure</groupId>
+      <artifactId>allure-cucumber7-jvm</artifactId>
       <version>${allure.version}</version>
       <scope>test</scope>
     </dependency>

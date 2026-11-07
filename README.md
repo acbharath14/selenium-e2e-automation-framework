@@ -4,10 +4,11 @@
 ![Java 17](https://img.shields.io/badge/Java-17-blue)
 ![Selenium 4.25](https://img.shields.io/badge/Selenium-4.25-orange)
 ![JUnit 5](https://img.shields.io/badge/JUnit-5-red)
+![Cucumber](https://img.shields.io/badge/Cucumber-BDD-green)
 ![Allure](https://img.shields.io/badge/Allure-report-yellow)
 ![Jenkins](https://img.shields.io/badge/CI-Jenkins-lightgrey)
 
-A complete end-to-end test automation framework built with **Selenium WebDriver 4**, **Java 17**, **JUnit 5**, and **Allure** reporting. It tests the [Swag Labs](https://www.saucedemo.com) demo store (15 UI journeys) and the [ReqRes](https://reqres.in) practice API (5 REST Assured tests).
+A complete end-to-end test automation framework built with **Selenium WebDriver 4**, **Java 17**, **Cucumber BDD**, **JUnit 5**, and **Allure** reporting. It tests the [Swag Labs](https://www.saucedemo.com) demo store (15 UI journeys, written as Cucumber scenarios) and the [ReqRes](https://reqres.in) practice API (5 REST Assured tests).
 
 **Watch it run** — the Jenkins pipeline: Build Now → stages go green → Allure report, 20/20:
 
@@ -17,7 +18,7 @@ If you are new to test automation, this repo is written for you: every class has
 
 ## What is tested
 
-**UI tests** (`src/test/java/tests/`) — 15 journeys against Swag Labs:
+**UI tests** (`src/test/resources/features/` + `src/test/java/steps/`) — 15 journeys against Swag Labs, written as Cucumber scenarios in plain words. The step definitions in `steps/` are thin wrappers over the page objects in `pages/`; the scenarios themselves contain no code, only the journey:
 
 | Area | Tests | What is covered |
 |---|---|---|
@@ -60,14 +61,17 @@ cd selenium-e2e-automation-framework
 # 2. Run everything (UI + API)
 mvn test
 
-# 3. Run only the UI tests
-mvn test -Dtest="tests.*"
+# 3. Run only the UI tests (the Cucumber scenarios)
+mvn test -Dtest="CucumberTest"
 
 # 4. Run only the API tests
-mvn test -Dtest="api.*"
+mvn test -Dtest="ReqResApiTest"
 
 # 5. Run headless (no browser window — for CI or servers)
 mvn test -Dheadless=true
+
+# 6. Run one feature file
+mvn test -Dtest="CucumberTest" -Dcucumber.features=src/test/resources/features/login.feature
 ```
 
 The first run downloads dependencies and the Chrome driver via Selenium Manager. UI tests take a few minutes (one browser per test); API tests finish in seconds.
@@ -75,7 +79,7 @@ The first run downloads dependencies and the Chrome driver via Selenium Manager.
 ## Project structure
 
 ```
-├── pom.xml                        # Dependencies: Selenium 4, JUnit 5, Allure, JaCoCo, REST Assured
+├── pom.xml                        # Dependencies: Selenium 4, Cucumber, JUnit 5, Allure, JaCoCo, REST Assured
 ├── scripts/preflight.sh           # Setup checker — runs automatically before tests
 ├── Jenkinsfile                    # Jenkins declarative pipeline (CI option 1)
 ├── ci/github-actions.yml          # GitHub Actions workflow TEMPLATE (CI option 2)
@@ -88,28 +92,37 @@ The first run downloads dependencies and the Chrome driver via Selenium Manager.
     │   │   ├── InventoryPage.java
     │   │   ├── CartPage.java
     │   │   └── CheckoutPage.java
-    │   ├── tests/                      # UI test classes (Selenium) — no raw driver calls here
-    │   │   ├── BaseTest.java           # Fresh browser per test, screenshot on failure
-    │   │   ├── LoginTest.java
-    │   │   ├── InventoryTest.java
-    │   │   ├── CartTest.java
-    │   │   └── CheckoutTest.java
+    │   ├── runner/
+    │   │   └── CucumberTest.java       # JUnit Platform Suite that runs the .feature files
+    │   ├── steps/                      # Step definitions + hooks — thin wrappers over page objects
+    │   │   ├── World.java              # Shared scenario state (the browser + page objects)
+    │   │   ├── Hooks.java              # Fresh browser per scenario, screenshot on failure
+    │   │   ├── LoginSteps.java
+    │   │   ├── InventorySteps.java
+    │   │   ├── CartSteps.java
+    │   │   └── CheckoutSteps.java
     │   ├── api/                        # API test classes (REST Assured, no browser)
     │   │   └── ReqResApiTest.java
     │   └── util/
     │       └── TestData.java           # Loads users.json / products.json
     └── resources/
+        ├── features/                   # Cucumber scenarios, one file per journey area
+        │   ├── login.feature
+        │   ├── inventory.feature
+        │   ├── cart.feature
+        │   └── checkout.feature
         ├── users.json                  # Login credentials matrix
         └── products.json               # Product catalog + checkout totals
 ```
 
 **Key design rules:**
 
-- **Page Object Model** — every page has one class holding its selectors and actions. Test classes call page methods; they never touch `driver.findElement` directly.
-- **Explicit waits only** — `WebDriverWait` everywhere, no `Thread.sleep`. The 10-second wait lives in `BaseTest` and the page objects.
+- **Scenarios read like the user story** — the `.feature` files say what the user does and what should happen, in plain words. Step definitions are thin wrappers over page objects; the feature files contain no code and no selectors.
+- **Page Object Model** — every page has one class holding its selectors and actions. Step definitions call page methods; they never touch `driver.findElement` directly.
+- **Explicit waits only** — `WebDriverWait` everywhere, no `Thread.sleep`. Each page object carries its own 10-second wait.
 - **Test data in JSON** — credentials and expected values live in `src/test/resources/`, loaded by `TestData`. Add a user or product there, not in code.
-- **Fresh browser per test** — `BaseTest` starts Chrome before each test and quits after. Tests never share state.
-- **UI and API stay separate** — `tests/` is Selenium, `api/` is REST Assured. They share nothing but the build.
+- **Fresh browser per scenario** — the `Hooks` class starts Chrome before each scenario and quits after. Scenarios never share state.
+- **UI and API stay separate** — the Cucumber scenarios drive Selenium, `api/` is REST Assured. They share nothing but the build.
 
 ## Test reports
 
@@ -120,7 +133,7 @@ mvn test                       # results land in target/allure-results/
 mvn allure:serve                # opens the interactive report in your browser
 ```
 
-Failed UI tests attach a screenshot to the Allure report and also save it under `target/screenshots/`.
+Failed scenarios attach a screenshot to the Allure report and also save it under `target/screenshots/`. The Allure report lists each Cucumber scenario as a test case.
 
 **JaCoCo** (the coverage report — which framework code the tests exercised):
 
@@ -164,7 +177,7 @@ It runs the suite headless on Ubuntu, then uploads three artifacts: the Allure r
 ## Extending the framework
 
 - **New page?** Add a class in `pages/` with its selectors as `private static final By` fields and public action methods.
-- **New UI test?** Add a method to the matching class in `tests/`, annotated `@Test` with a `@DisplayName` that says what the user does and what should happen, in plain words.
+- **New UI journey?** Add a scenario to the matching `.feature` file (title says what the user does and what should happen, in plain words), then add the steps to the matching class in `steps/`.
 - **New API test?** Add a method to `api/ReqResApiTest.java` (or a new class in `api/`) using REST Assured's `given/when/then`.
 - **New test data?** Edit `users.json` / `products.json` and read it via `TestData`.
 
