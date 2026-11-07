@@ -2,8 +2,11 @@ package tests;
 
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import pages.InventoryPage;
 import pages.LoginPage;
 import util.TestData;
@@ -19,14 +22,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Feature("Login")
 class LoginTest extends BaseTest {
 
-    @Test
-    @DisplayName("Standard user signs in successfully and sees the products page")
-    void standardUserSignsInSuccessfully() {
-        String[] creds = TestData.user("standard");
+    @ParameterizedTest(name = "user key: {0}")
+    @MethodSource("successfulLoginUsers")
+    @DisplayName("Valid users sign in successfully and see the products page")
+    void validUsersSignInSuccessfully(String userKey) {
+        String[] creds = TestData.user(userKey);
         new LoginPage(driver).loginAs(creds[0], creds[1]);
         InventoryPage inventory = new InventoryPage(driver);
         assertEquals("Products", inventory.pageTitle(),
-                "Standard user should land on the products page after login");
+                "User " + userKey + " should land on the products page after login");
+    }
+
+    static Stream<String> successfulLoginUsers() {
+        return Stream.of("standard", "performanceGlitch");
     }
 
     @Test
@@ -48,16 +56,6 @@ class LoginTest extends BaseTest {
         assertEquals("Products", inventory.pageTitle());
         assertTrue(inventory.allImagesIdentical(),
                 "Problem user is known to see the same wrong image for all products");
-    }
-
-    @Test
-    @DisplayName("Slow user signs in successfully and sees the products page")
-    void slowUserSignsInSuccessfully() {
-        String[] creds = TestData.user("performanceGlitch");
-        new LoginPage(driver).loginAs(creds[0], creds[1]);
-        InventoryPage inventory = new InventoryPage(driver);
-        assertEquals("Products", inventory.pageTitle(),
-                "Slow user should eventually land on the products page");
     }
 
     @Test

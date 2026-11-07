@@ -5,9 +5,13 @@ import io.qameta.allure.Feature;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import pages.InventoryPage;
 import pages.LoginPage;
 import util.TestData;
@@ -44,46 +48,35 @@ class InventoryTest extends BaseTest {
         assertTrue(prices.stream().allMatch(p -> p.startsWith("$")), "Prices should start with $");
     }
 
-    @Test
-    @DisplayName("Sorting by name A to Z puts products in alphabetical order")
-    void sortByNameAToZ() {
-        inventory.sortBy("Name (A to Z)");
-        List<String> names = inventory.productNames();
-        List<String> sorted = new ArrayList<>(names);
-        sorted.sort(String.CASE_INSENSITIVE_ORDER);
-        assertEquals(sorted, names, "Products should be in A-to-Z order");
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("sortOptions")
+    @DisplayName("Sort control orders the products correctly")
+    void sortingOrdersProducts(String sortOption, boolean byPrice, Comparator<Comparable<?>> expectedOrder) {
+        inventory.sortBy(sortOption);
+        List<Comparable<?>> displayed = new ArrayList<>();
+        if (byPrice) {
+            inventory.productPrices().forEach(
+                    p -> displayed.add(Double.parseDouble(p.replace("$", ""))));
+        } else {
+            displayed.addAll(inventory.productNames());
+        }
+        List<Comparable<?>> sorted = new ArrayList<>(displayed);
+        sorted.sort(expectedOrder);
+        assertEquals(sorted, displayed, "Products should be in " + sortOption + " order");
     }
 
-    @Test
-    @DisplayName("Sorting by name Z to A puts products in reverse alphabetical order")
-    void sortByNameZToA() {
-        inventory.sortBy("Name (Z to A)");
-        List<String> names = inventory.productNames();
-        List<String> sorted = new ArrayList<>(names);
-        sorted.sort(String.CASE_INSENSITIVE_ORDER.reversed());
-        assertEquals(sorted, names, "Products should be in Z-to-A order");
-    }
-
-    @Test
-    @DisplayName("Sorting by price low to high puts the cheapest product first")
-    void sortByPriceLowToHigh() {
-        inventory.sortBy("Price (low to high)");
-        List<Double> prices = inventory.productPrices().stream()
-                .map(p -> Double.parseDouble(p.replace("$", ""))).toList();
-        List<Double> sorted = new ArrayList<>(prices);
-        sorted.sort(Comparator.naturalOrder());
-        assertEquals(sorted, prices, "Products should be sorted cheapest first");
-    }
-
-    @Test
-    @DisplayName("Sorting by price high to low puts the most expensive product first")
-    void sortByPriceHighToLow() {
-        inventory.sortBy("Price (high to low)");
-        List<Double> prices = inventory.productPrices().stream()
-                .map(p -> Double.parseDouble(p.replace("$", ""))).toList();
-        List<Double> sorted = new ArrayList<>(prices);
-        sorted.sort(Comparator.reverseOrder());
-        assertEquals(sorted, prices, "Products should be sorted most expensive first");
+    static Stream<Arguments> sortOptions() {
+        Comparator<Comparable<?>> nameAsc =
+                (a, b) -> ((String) a).compareToIgnoreCase((String) b);
+        Comparator<Comparable<?>> nameDesc = nameAsc.reversed();
+        Comparator<Comparable<?>> priceAsc =
+                (a, b) -> Double.compare((Double) a, (Double) b);
+        Comparator<Comparable<?>> priceDesc = priceAsc.reversed();
+        return Stream.of(
+                Arguments.of("Name (A to Z)", false, nameAsc),
+                Arguments.of("Name (Z to A)", false, nameDesc),
+                Arguments.of("Price (low to high)", true, priceAsc),
+                Arguments.of("Price (high to low)", true, priceDesc));
     }
 
     @Test
